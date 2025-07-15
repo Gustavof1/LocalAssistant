@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriAI - Your Personal Health Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.4.0"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+        }
+        
+        .bento-cell {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .bento-cell:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .chat-message.user {
+            background-color: #e0f2fe;
+            border-radius: 18px 18px 4px 18px;
+        }
+        
+        .chat-message.ai {
+            background-color: #f0fdf4;
+            border-radius: 18px 18px 18px 4px;
+        }
+        
+        .health-metric {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        }
+        
+        .calendar-day.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .calendar-day.has-data {
+            background-color: #dbeafe;
+        }
+        
+        .loader {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: block;
+            margin: 15px auto;
+            position: relative;
+            color: #3b82f6;
+            box-sizing: border-box;
+            animation: animloader 1s linear infinite alternate;
+        }
+        
+        @keyframes animloader {
+            0% {
+                box-shadow: -38px -12px ,  -14px 0,  14px 0, 38px 0;
+            }
+            33% {
+                box-shadow: -38px 0px, -14px -12px,  14px 0, 38px 0;
+            }
+            66% {
+                box-shadow: -38px 0px , -14px 0, 14px -12px, 38px 0;
+            }
+            100% {
+                box-shadow: -38px 0 , -14px 0, 14px 0 , 38px -12px;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-8">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                    <i class="fas fa-heartbeat text-blue-500 text-xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-800">NutriAI</h1>
+            </div>
+            <nav class="hidden md:flex space-x-6">
+                <a href="#" class="text-gray-600 hover:text-blue-500 transition">Dashboard</a>
+                <a href="#" class="text-gray-600 hover:text-blue-500 transition">Nutrition</a>
+                <a href="#" class="text-gray-600 hover:text-blue-500 transition">Exercise</a>
+                <a href="#" class="text-gray-600 hover:text-blue-500 transition">Progress</a>
+            </nav>
+            <button class="md:hidden text-gray-600">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </header>
+        
+        <!-- Main Grid Layout -->
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <!-- Health Summary Card -->
+            <div class="bento-cell bg-white rounded-2xl p-6 md:col-span-1">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-800">Health Summary</h2>
+                    <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                        <i class="fas fa-chart-line text-green-500"></i>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="health-metric p-3 rounded-lg">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">BMI</span>
+                            <span class="text-sm font-medium text-green-600">24.2</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                            <div class="bg-green-500 h-1.5 rounded-full" style="width: 70%"></div>
+                        </div>
+                    </div>
+                    <div class="health-metric p-3 rounded-lg">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Hydration</span>
+                            <span class="text-sm font-medium text-blue-600">85%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                            <div class="bg-blue-500 h-1.5 rounded-full" style="width: 85%"></div>
+                        </div>
+                    </div>
+                    <div class="health-metric p-3 rounded-lg">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Activity</span>
+                            <span class="text-sm font-medium text-purple-600">65%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                            <div class="bg-purple-500 h-1.5 rounded-full" style="width: 65%"></div>
+                        </div>
+                    </div>
+                </div>
+                <button class="mt-6 w-full py-2 bg-blue-50 text-blue-600 rounded-lg font-medium hover:bg-blue-100 transition">
+                    View Full Report
+                </button>
+            </div>
+            
+            <!-- Calendar Card -->
+            <div class="bento-cell bg-white rounded-2xl p-6 md:col-span-2 lg:col-span-1">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-800">Calendar</h2>
+                    <div class="flex space-x-2">
+                        <button class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                            <i class="fas fa-chevron-left text-gray-500"></i>
+                        </button>
+                        <button class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                            <i class="fas fa-chevron-right text-gray-500"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-7 gap-2 mb-4">
+                    <div class="text-center text-xs text-gray-500 font-medium">S</div>
+                    <div class="text-center text-xs text-gray-500 font-medium">M</div>
+                    <div class="text-center text-xs text-gray-500 font-medium">T</div>
+                    <div class="text-center text-xs text-gray-500 font-medium">W</div>
+                    <div class="text-center text-xs text-gray-500 font-medium">T</div>
+                    <div class="text-center text-xs text-gray-500 font-medium">F</div>
+                    <div class="text-center text-xs text-gray-500 font-medium">S</div>
+                </div>
+                <div class="grid grid-cols-7 gap-2">
+                    <div class="calendar-day text-center text-sm py-2 rounded-full text-gray-400">28</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full text-gray-400">29</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full text-gray-400">30</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full">1</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full">2</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full">3</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full">4</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full">5</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full">6</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full">7</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full">8</div>
+                    <div class="calendar-day has-data text-center text-sm py-2 rounded-full">9</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full">10</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full">11</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full">12</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full">13</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full">14</div>
+                    <div class="calendar-day active text-center text-sm py-2 rounded-full font-medium">15</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full">16</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full">17</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full">18</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full">19</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full">20</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full">21</div>
+                    <div class="calendar-day has-data text-center text-sm py-2 rounded-full">22</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full">23</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full">24</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full">25</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full">26</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full">27</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full">28</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full text-gray-400">1</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full text-gray-400">2</div>
+                    <div class="calendar-day text-center text-sm py-2 rounded-full text-gray-400">3</div>
+                </div>
+                <div class="mt-6">
+                    <h3 class="text-sm font-medium text-gray-700 mb-2">Today's Activities</h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                            <span class="text-sm text-gray-600">Morning Walk - 30 min</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                            <span class="text-sm text-gray-600">Balanced Breakfast</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-2 h-2 rounded-full bg-purple-500"></div>
+                            <span class="text-sm text-gray-600">Yoga Session</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Questions Card -->
+            <div class="bento-cell bg-white rounded-2xl p-6 md:col-span-1">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-800">Quick Questions</h2>
+                    <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
+                        <i class="fas fa-bolt text-purple-500"></i>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    <button onclick="askQuestion('What are some healthy breakfast options?')" class="w-full text-left px-4 py-3 bg-gray-50 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition">
+                        <i class="fas fa-egg mr-2 text-yellow-500"></i> Breakfast ideas
+                    </button>
+                    <button onclick="askQuestion('How much water should I drink daily?')" class="w-full text-left px-4 py-3 bg-gray-50 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition">
+                        <i class="fas fa-tint mr-2 text-blue-400"></i> Hydration tips
+                    </button>
+                    <button onclick="askQuestion('Suggest a 20-minute home workout')" class="w-full text-left px-4 py-3 bg-gray-50 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition">
+                        <i class="fas fa-running mr-2 text-green-500"></i> Quick workout
+                    </button>
+                    <button onclick="askQuestion('What foods help with digestion?')" class="w-full text-left px-4 py-3 bg-gray-50 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition">
+                        <i class="fas fa-apple-alt mr-2 text-red-400"></i> Digestion foods
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Chat Interface -->
+            <div class="bento-cell bg-white rounded-2xl p-6 md:col-span-3 lg:col-span-2">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-800">NutriAI Assistant</h2>
+                    <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                        <i class="fas fa-robot text-green-500"></i>
+                    </div>
+                </div>
+                <div id="chat-container" class="h-64 overflow-y-auto mb-4 space-y-3 pr-2">
+                    <div class="chat-message ai p-3 max-w-[80%]">
+                        <p class="text-sm text-gray-700">Hello! I'm your NutriAI assistant. How can I help you with your health and nutrition today?</p>
+                    </div>
+                </div>
+                <div class="flex space-x-2">
+                    <input id="user-input" type="text" placeholder="Ask me anything about health..." class="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <button id="send-btn" onclick="sendMessage()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+                <div id="loading-indicator" class="hidden">
+                    <div class="loader"></div>
+                </div>
+            </div>
+            
+            <!-- Daily Nutrition Card -->
+            <div class="bento-cell bg-white rounded-2xl p-6 md:col-span-2">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-800">Today's Nutrition</h2>
+                    <div class="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center">
+                        <i class="fas fa-utensils text-yellow-500"></i>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-4 mb-4">
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-fire text-blue-500"></i>
+                        </div>
+                        <span class="text-xs text-gray-500">Calories</span>
+                        <p class="font-medium">1,850</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-dumbbell text-green-500"></i>
+                        </div>
+                        <span class="text-xs text-gray-500">Protein</span>
+                        <p class="font-medium">112g</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-bread-slice text-purple-500"></i>
+                        </div>
+                        <span class="text-xs text-gray-500">Carbs</span>
+                        <p class="font-medium">210g</p>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-gray-600">Breakfast</span>
+                            <span class="font-medium">450 cal</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.5">
+                            <div class="bg-blue-500 h-1.5 rounded-full" style="width: 24%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-gray-600">Lunch</span>
+                            <span class="font-medium">750 cal</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.5">
+                            <div class="bg-green-500 h-1.5 rounded-full" style="width: 40%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-gray-600">Dinner</span>
+                            <span class="font-medium">650 cal</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.5">
+                            <div class="bg-purple-500 h-1.5 rounded-full" style="width: 35%"></div>
+                        </div>
+                    </div>
+                </div>
+                <button class="mt-6 w-full py-2 bg-green-50 text-green-600 rounded-lg font-medium hover:bg-green-100 transition">
+                    Log Meal
+                </button>
+            </div>
+            
+            <!-- AI Analysis Card -->
+            <div class="bento-cell bg-white rounded-2xl p-6 md:col-span-2 lg:col-span-1">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-800">AI Analysis</h2>
+                    <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
+                        <i class="fas fa-brain text-indigo-500"></i>
+                    </div>
+                </div>
+                <div class="bg-indigo-50 rounded-lg p-4 mb-4">
+                    <h3 class="text-sm font-medium text-indigo-800 mb-2">Today's Recommendation</h3>
+                    <p class="text-xs text-indigo-700">Based on your activity and nutrition, I recommend increasing your water intake by 2 glasses today and adding a 15-minute walk after dinner.</p>
+                </div>
+                <div class="space-y-3">
+                    <div class="flex items-start space-x-2">
+                        <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center mt-0.5">
+                            <i class="fas fa-check text-green-500 text-xs"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">Protein intake</p>
+                            <p class="text-xs text-gray-500">You're meeting your daily protein goals</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-2">
+                        <div class="w-6 h-6 rounded-full bg-yellow-100 flex items-center justify-center mt-0.5">
+                            <i class="fas fa-exclamation text-yellow-500 text-xs"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">Fiber</p>
+                            <p class="text-xs text-gray-500">Consider adding more vegetables</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-2">
+                        <div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center mt-0.5">
+                            <i class="fas fa-info text-blue-500 text-xs"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">Sleep quality</p>
+                            <p class="text-xs text-gray-500">Your sleep patterns look good</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize the pipeline when the page loads
+        let pipeline;
+        
+        async function initializeModel() {
+            try {
+                // Load the model - using a smaller model for demo purposes
+                pipeline = await transformers.pipeline(
+                    'text-generation', 
+                    'Xenova/distilgpt2',
+                    {
+                        progress_callback: (progress) => {
+                            console.log(`Loading model: ${Math.round(progress * 100)}%`);
+                        }
+                    }
+                );
+                console.log('Model loaded successfully');
+                
+                // Add a welcome message from the AI
+                addAIMessage("I'm now ready to answer your health and nutrition questions! What would you like to know?");
+            } catch (error) {
+                console.error('Error loading model:', error);
+                addAIMessage("Sorry, I'm having trouble loading my knowledge base. Please try again later.");
+            }
+        }
+        
+        // Call the initialization function when the page loads
+        document.addEventListener('DOMContentLoaded', initializeModel);
+        
+        // Function to add a message to the chat
+        function addMessage(content, isUser) {
+            const chatContainer = document.getElementById('chat-container');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${isUser ? 'user' : 'ai'} p-3 max-w-[80%] ${isUser ? 'ml-auto' : ''}`;
+            messageDiv.innerHTML = `<p class="text-sm ${isUser ? 'text-gray-800' : 'text-gray-700'}">${content}</p>`;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        
+        // Function to add an AI message
+        function addAIMessage(content) {
+            addMessage(content, false);
+        }
+        
+        // Function to add a user message
+        function addUserMessage(content) {
+            addMessage(content, true);
+        }
+        
+        // Function to send a message
+        async function sendMessage() {
+            const userInput = document.getElementById('user-input');
+            const message = userInput.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message to chat
+            addUserMessage(message);
+            userInput.value = '';
+            
+            // Show loading indicator
+            document.getElementById('loading-indicator').classList.remove('hidden');
+            
+            try {
+                // Generate response from the model
+                const response = await pipeline(message, {
+                    max_length: 100,
+                    do_sample: true,
+                    temperature: 0.7,
+                });
+                
+                // Process the response to make it more health-focused
+                let aiResponse = response[0].generated_text;
+                
+                // Simple post-processing to make responses more relevant to health
+                if (aiResponse.includes("I'm not sure") || aiResponse.includes("I don't know")) {
+                    aiResponse = "As a health assistant, I recommend consulting with a healthcare professional for specific medical advice. For general nutrition questions, I can suggest that " + 
+                    aiResponse.substring(aiResponse.indexOf("I")).toLowerCase();
+                }
+                
+                // Add AI response to chat
+                addAIMessage(aiResponse);
+            } catch (error) {
+                console.error('Error generating response:', error);
+                addAIMessage("I'm having trouble processing your request. Please try again.");
+            } finally {
+                // Hide loading indicator
+                document.getElementById('loading-indicator').classList.add('hidden');
+            }
+        }
+        
+        // Function to handle quick questions
+        function askQuestion(question) {
+            document.getElementById('user-input').value = question;
+            sendMessage();
+        }
+        
+        // Allow sending messages with Enter key
+        document.getElementById('user-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        // Calendar day click handler
+        document.querySelectorAll('.calendar-day').forEach(day => {
+            day.addEventListener('click', function() {
+                document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('active'));
+                this.classList.add('active');
+                
+                // In a real app, you would load data for the selected day here
+                console.log('Selected day:', this.textContent);
+            });
+        });
+    </script>
+</body>
+</html>
